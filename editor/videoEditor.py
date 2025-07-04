@@ -188,8 +188,8 @@ def timecodeBreak(file, m):
     new.write(byteData)
 
 def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = False, toGif = False, disallowTimecodeBreak = False, HIDE_FFMPEG_OUT = True, HIDE_ALL_FFMPEG = True, SHOW_TIMER = False, fixPrint = fixPrint):
-    videoFX = ['playreverse', 'transpose', 'hmirror', 'vmirror', 'lag', 'rlag', 'shake', 'fisheye','defisheye', 'zoom', 'bottomtext', 'toptext', 'normalcaption', 'topcap','bottomcap', 'topcaption', 'bottomcaption', 'hypercam', 'bandicam', 'deepfry', 'contrast', 'hue', 'hcycle', 'speed', 'vreverse', 'areverse', 'reverse', 'wscale', 'hscale', 'sharpen', 'watermark', 'framerate', 'invert', 'wave', 'waveamount', 'wavestrength', 'acid', 'hcrop', 'vcrop', 'hflip', 'vflip', 'swapuv', 'invertred', 'huehsvinvert', 'huehsv','invertgreen', 'invertblue', 'unsharpen', 'rotate', 'gm4', 'whar', 'skew', 'slide']
-    audioFX = ['pitch', 'reverb', 'earrape', 'bass', 'oops', 'threshold', 'crush', 'wobble', 'music', 'sfx', 'volume', 'autotune']
+    videoFX = ['playreverse', 'transpose', 'hmirror', 'vmirror', 'lag', 'rlag', 'shake', 'fisheye','defisheye', 'fisheye2','defisheye2', 'zoom', 'bottomtext', 'toptext', 'normalcaption', 'topcap','bottomcap', 'topcaption', 'bottomcaption', 'hypercam', 'bandicam', 'deepfry', 'contrast', 'hue', 'hcycle', 'speed', 'vreverse', 'areverse', 'reverse', 'wscale', 'hscale', 'sharpen', 'watermark', 'framerate', 'invert', 'wave', 'waveamount', 'wavestrength', 'acid', 'hcrop', 'vcrop', 'hflip', 'vflip', 'swapuv', 'invertred', 'huehsvinvert', 'huehsv','invertgreen', 'invertblue', 'unsharpen', 'rotate', 'gm4', 'whar', 'skew', 'slide', 'bgr', 'grayscale', 'gold']
+    audioFX = ['pitch', 'earwax', 'riaa', 'reverb', 'earrape', 'bass', 'oops', 'threshold', 'crush', 'wobble', 'music', 'sfx', 'volume', 'autotune']
 
     d = {i: None for i in par}
     for i in groupData:
@@ -452,6 +452,23 @@ def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = Fa
                 video = video.filter("scale", w = width, h = height)
             video = video.filter("setsar", r = 1)
 
+        def fisheye2():
+            nonlocal video, audio
+            d['fisheye2'] = int(constrain(d['fisheye2'], 1, 2))
+            for i in range(d['fisheye2']):
+                video = video.filter("v360" , input = "equirect", output = "hammer")
+                video = video.filter("scale", w = width, h = height)
+            video = video.filter("setsar", r = 1)
+
+        def defisheye2():
+            nonlocal video, audio
+            d['defisheye2'] = int(constrain(d['defisheye2'], 1, 2))
+            for i in range(d['defisheye2']):
+                video = video.filter("v360" , input = "hammer", output = "equirect")
+                video = video.filter("scale", w = width, h = height)
+            video = video.filter("setsar", r = 1)    
+
+
         def defisheye():
             nonlocal video, audio
             d['defisheye'] = int(constrain(d['defisheye'], 1, 2))
@@ -586,11 +603,15 @@ def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = Fa
 
         def invert():
             nonlocal video, audio
-            video = video.filter("negate")  
+            video = video.filter("negate")        
 
         def invertred():
             nonlocal video, audio
             video = video.filter("lutrgb", r="negval")
+
+        def gold():
+            nonlocal video, audio
+            video = video.filter("colorize",50,0.8)    
 
         def invertgreen():
             nonlocal video, audio
@@ -614,7 +635,11 @@ def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = Fa
 
         def whar():
             nonlocal video, audio
-            video = video.filter("colorchannelmixer", "1,0,1,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0")               
+            video = video.filter("colorchannelmixer",1,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0)
+
+        def bgr():
+            nonlocal video, audio
+            video = video.filter("colorchannelmixer",0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,1)                   
               
 
         def hue():
@@ -684,6 +709,10 @@ def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = Fa
             nonlocal video, audio
             video = video.filter("huesaturation",(d['huehsv']),0,0,-100,100)
 
+        def grayscale():
+            nonlocal video, audio
+            video = video.filter("hue",0,0)    
+
         def sharpen():
             nonlocal video, audio
 
@@ -730,6 +759,8 @@ def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = Fa
             'shake': shake,
             'fisheye': fisheye,
             'defisheye': defisheye,
+            'fisheye2': fisheye2,
+            'defisheye2': defisheye2,
             'zoom': zoom,
             'bottomtext': toptext,
             'toptext': toptext,
@@ -772,7 +803,10 @@ def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = Fa
             'gm4': gm4,
             'whar': whar,
             'skew': skew,
-            'slide': slide
+            'slide': slide,
+            'bgr': bgr,
+            'grayscale' : grayscale,
+            'gold' : gold
         }
 
         for i in orderedVideoFX:
@@ -795,6 +829,15 @@ def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = Fa
         def mute(SOXCMD, AUDPRE):
             SOXCMD += ['oops']
             return AUDPRE
+        
+        def earwax(SOXCMD, AUDPRE):
+            SOXCMD += ['earwax']
+            return AUDPRE
+        
+        def riaa(SOXCMD, AUDPRE):
+            SOXCMD += ['riaa']
+            return AUDPRE
+        
         def threshold(SOXCMD, AUDPRE):
             n = -(50 - constrain(d['threshold'], 1, 100) / 2)
             th = str(n)
@@ -809,7 +852,7 @@ def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = Fa
             SOXCMD += ["gain", str(d['earrape'])]
             return AUDPRE
         def pitch(SOXCMD, AUDPRE):
-            d['pitch'] = 1 * int(constrain(d['pitch'], -1200, 1200))
+            d['pitch'] = 1 * int(constrain(d['pitch'], -12000, 12000))
             SOXCMD += ["pitch", str(d['pitch'])]
             return AUDPRE
         def reverb(SOXCMD, AUDPRE):
@@ -881,7 +924,9 @@ def edit(file, groupData, par, workingDir = "", resourceDir = "..", toVideo = Fa
             'autotune' : autotune,
             'music'    : music,
             'sfx'      : sfx,
-            'oops'     : mute
+            'oops'     : mute,
+            'earwax'   : earwax,
+            'riaa'     : riaa
         }
 
         timer()
@@ -1070,8 +1115,12 @@ def videoEdit(originalFile, args, workingDir = "./", resourceDir = path.dirname(
         "ytp"           :[V, "ytp" , int(r(1, 2)) ],
         "fisheye"       :[V, "fe"  , int(r(1, 2)) ],
         "defisheye"       :[V, "defe"  , int(r(1, 2)) ],
+        "fisheye2"       :[V, "fe2"  , int(r(1, 2)) ],
+        "defisheye2"       :[V, "defe2"  , int(r(1, 2)) ],
         "oops"          :[V, "op"  , None ],
-        "pitch"         :[V, "pch" , int(r(-1200, 1200)) ],
+        "earwax"         :[V, "ex"  , None ],
+        "riaa"          :[V, "ri"  , None ],
+        "pitch"         :[V, "pch" , int(r(-12000, 12000)) ],
         "reverb"        :[V, "rv"  , int(r(0, 100)) ],
         "reverbdelay"   :[V, "rvd" , int(r(0, 100)) ],
         "hmirror"       :[V, "hm"  , 1 ],
@@ -1107,11 +1156,14 @@ def videoEdit(originalFile, args, workingDir = "./", resourceDir = path.dirname(
         "invertred"     :[V, "invr" , 1 ],
         "invertgreen"   :[V, "invg" , 1 ],
         "invertblue"    :[V, "invb" , 1 ],
+        "gold"    :[V, "gd" , 1 ],
         "swapuv"        :[V, "uv" , 1 ],
         "gm4"           :[V, "g4" , 1 ],
+        "grayscale"           :[V, "gray" , 1 ],
         "skew"          :[V, "sk" , r(-2, 2) ],
         "slide"          :[V, "sl" , r(-2, 2) ],
         "whar"           :[V, "wh" , None ],
+        "bgr"           :[V, "bgr" , None ],
         "unsharpen"     :[V, "unsharp" , 1 ],
         "rotate"        :[V, "rt" , r(-9, 9) ],
         "wave"          :[V, "wav" , r(-100, 100) ],
@@ -1121,6 +1173,7 @@ def videoEdit(originalFile, args, workingDir = "./", resourceDir = path.dirname(
         "acid"          :[V, "acid", r(1, 100) ],
         "glitch"        :[V, "glch", r(1, 100) ],
         "autotune"      :[S, "atb" , "https://www.youtube.com/watch?v=4qyUUgeW1gA" ]
+
     }
 
     for i, v in par.items(): v[1], v[2] = v[2], v[1] # Dumb ik but it's too much effort otherwise
@@ -1197,7 +1250,7 @@ def videoEdit(originalFile, args, workingDir = "./", resourceDir = path.dirname(
             tryToDeleteFile(originalFile)
             tryToDeleteDir(newFileDir)
             
-        return result(False, "", "Unable to send video")
+        return result(False, "", "FFMPEG error")
 
 # if __name__ == "__main__":
 #     if len(sys.argv) == 1:
